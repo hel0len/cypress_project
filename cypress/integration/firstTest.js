@@ -40,8 +40,18 @@ it("Using get with find and eq", () => {
   cy.get('tbody').find('td').find('div').find('button').eq(0);
 });
 
-it.only("Using get with find and eq", () => {
+it("Using get with find and eq", () => {
   cy.viewport(1800, 700);
   cy.visit("https://docs.cypress.io/api/commands/eq.html#Syntax");
   cy.get('div').find('nav').find('ul').find('li').find('a').eq(0);
 });
+
+it('Название на русском', () => {
+  cy.visit("https://next.privat24.ua/mobile?lang=en");
+  cy.contains('Sign in')
+});
+
+it('Contains с игнорированием регистра', () => {
+  cy.visit("https://next.privat24.ua/mobile?lang=en");
+  cy.contains('SIGN in', {matchCase: false});
+})

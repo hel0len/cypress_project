@@ -102,3 +102,75 @@ it('Проверка на корректность текущего url', () => 
     .should('eq', 'https://next.privat24.ua/?lang=en') // проверка что юрл эквивалентен ожидаемому
 });
 
+// Авторизация в мидхабе
+it('', () => {
+  cy.visit('http://localhost:8084/')
+  cy.get('[data-id="go-to-auth-button"]').click()
+  cy.get('[data-id="pin-input"]').type('0000')
+  cy.get('[data-id="auth-button"]').click()
+})
+
+
+// Тест без page object на пополнение счета телефона 
+it('Пополнение украинского мобильного телефона', () => {
+  cy.visit('https://next.privat24.ua/mobile?lang=en')  
+    .get('[data-qa-node="phone-number"]')
+    .type('686979712')
+    .get('[data-qa-node="amount"]')
+    .type('1')
+    .get('[data-qa-node="numberdebitSource"]')
+    .type('4552331448138217')
+    .get('[data-qa-node=expiredebitSource]')
+    .type('0524')
+    .get('[data-qa-node="cvvdebitSource"]')
+    .type('111')
+    .wait(1000)
+    .get('[data-qa-node="firstNamedebitSource"]')
+    .type('SHAYNE')
+    .get('[data-qa-node="lastNamedebitSource"]')
+    .type('MCCONNELL')
+    .get('[data-qa-node="submit"]')
+    .click()
+    .wait(2000)
+    .get('[data-qa-node="card"]')
+    .should('have.text', '4552 **** **** 8217')
+    .get('[data-qa-node="amount"]')
+    .should('have.text', '1')
+    .get('[data-qa-node="currency"]')
+    .eq(1)
+    .should('contain.text', 'UAH')
+    .get('[data-qa-node="commission"]').eq(1)
+    .should('have.text', '2')
+    .get('[data-qa-node="commission-currency"]')
+    .should('contain.text', 'UAH')
+  });
+
+
+  // Тест без page object на перевод с карты на карту
+it.only('Пополнение украинского мобильного телефона', () => {
+  cy.visit('https://next.privat24.ua/money-transfer/card?lang=en')
+    .get('[data-qa-node="numberdebitSource"]').type('4552331448138217')
+    .get('[data-qa-node=expiredebitSource]').type('0524')
+    .get('[data-qa-node="cvvdebitSource"]').type('111')
+    .get('[data-qa-node="firstNamedebitSource"]').type('SHAYNE')
+    .get('[data-qa-node="lastNamedebitSource"]').type('MCCONNELL')
+    .get('[data-qa-node="numberreceiver"]').type('5309233034765085')
+    .get('[data-qa-node="amount"]').type('300')
+    .get('[data-qa-node="toggle-comment"]').click()
+    .get('[data-qa-node="comment"]').type('cypress_test')
+    .get('[type="submit"]').click()
+    .wait(2000)
+    .get('[data-qa-node="payer-card"]')
+      .should('have.text', '4552 3314 4813 8217')
+    .get('[data-qa-node="receiver-card"]')
+      .should('have.text', '5309 2330 3476 5085')
+    .get('[data-qa-node="payer-amount"]')
+      .should('have.text', '300 UAH')
+    .get('[data-qa-node="payer-currency"]')
+      .should('have.text', '84.67 UAH')
+    .get('[data-qa-node="total"]').find('div')
+      .should('contain.text', '384.67')
+      .and('contain.text', 'UAH')
+    .get('[data-qa-node="comment"]')
+      .should('have.text', 'cypress_test')
+  });

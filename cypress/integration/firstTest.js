@@ -158,7 +158,7 @@ it('Перевод с карты на карту', () => {
   it.only('Example POST request', () => {
 
     const requestBody = {
-      "action":"info","phone":"+380987654323","amount":300,"currency":"UAH","cardCvv":"111","card":"4552331448138217","cardExp":"0526","xref":"1ca1a79d41c847dad7d72b8f96d240a0","_":1637313457598
+      "action":"info","phone":"+380987654323","amount":300,"currency":"UAH","cardCvv":"111","card":"4552331448138217","cardExp":"0526","xref":"1730f4049510932a253bea8fa1b6a847","_":1637313457598
       };
 
     const headersData = {
@@ -172,6 +172,27 @@ it('Перевод с карты на карту', () => {
       headers: headersData
     })
     .then((response) => {
-      console.log(response.body)
+    console.log(response.body)
+      // Проверка статус код ответа = 200
+      expect(response).to.have.property('status').to.equal(200);
+      // Проверка статуса в теле ответа 
+      expect(response.body).to.have.property('status').to.equal('success')
+      // Проверка значения в теле ответа 
+      expect(response.body.data).to.have.property('amount').to.equal('50')
+    })
+
+    // Способ проверки ответа от апи через should 
+    // Метод возвращает в ответ объект
+    cy.request({
+      method: 'POST',
+      url: 'https://next.privat24.ua/api/p24/pub/mobipay',
+      body: requestBody,
+      headers: headersData
+      // Передаем в its возвращемый из request объект
+    }).its('body').should('contain', {
+      status: 'success'
+      // its тоже возвращает объект
+    }).its('data').should('contain', {
+      amount: '50'
     })
   })

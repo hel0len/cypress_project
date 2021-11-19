@@ -1,4 +1,7 @@
 /// <reference types="Cypress" />
+import { mobileReplenishment } from "../support/pages/mobileReplenishment"
+import { transfers } from "..//support/pages/transfers"
+import { basePage } from "../support/pages/basePage";
 
 // it('By ID', () => {
 //   cy.visit("https://facebook.com/");
@@ -113,64 +116,62 @@ it('', () => {
 
 // Тест без page object на пополнение счета телефона 
 it('Пополнение украинского мобильного телефона', () => {
-  cy.visit('https://next.privat24.ua/mobile?lang=en')  
-    .get('[data-qa-node="phone-number"]')
-    .type('686979712')
-    .get('[data-qa-node="amount"]')
-    .type('1')
-    .get('[data-qa-node="numberdebitSource"]')
-    .type('4552331448138217')
-    .get('[data-qa-node=expiredebitSource]')
-    .type('0524')
-    .get('[data-qa-node="cvvdebitSource"]')
-    .type('111')
-    .wait(1000)
-    .get('[data-qa-node="firstNamedebitSource"]')
-    .type('SHAYNE')
-    .get('[data-qa-node="lastNamedebitSource"]')
-    .type('MCCONNELL')
-    .get('[data-qa-node="submit"]')
-    .click()
-    .wait(2000)
-    .get('[data-qa-node="card"]')
-    .should('have.text', '4552 **** **** 8217')
-    .get('[data-qa-node="amount"]')
-    .should('have.text', '1')
-    .get('[data-qa-node="currency"]')
-    .eq(1)
-    .should('contain.text', 'UAH')
-    .get('[data-qa-node="commission"]').eq(1)
-    .should('have.text', '2')
-    .get('[data-qa-node="commission-currency"]')
-    .should('contain.text', 'UAH')
+  basePage.open('https://next.privat24.ua/mobile?lang=en'); 
+  mobileReplenishment.typePhoneNumber('686979712');
+  basePage.typeAmount('1');
+  basePage.typeDebitCardData('4552331448138217', '0524', '111', 'SHAYNE', 'MCCONNELL');
+  cy.wait(1000);      
+  basePage.submitForm();
+  cy.wait(2000);
+  mobileReplenishment.checkDebitCard('4552 **** **** 8217');
+  mobileReplenishment.checkDebitAmount('1');
+  mobileReplenishment.checkDebitTotal('2');
+  mobileReplenishment.checkPaymentCurrency('UAH')
   });
 
 
   // Тест без page object на перевод с карты на карту
-it.only('Пополнение украинского мобильного телефона', () => {
-  cy.visit('https://next.privat24.ua/money-transfer/card?lang=en')
-    .get('[data-qa-node="numberdebitSource"]').type('4552331448138217')
-    .get('[data-qa-node=expiredebitSource]').type('0524')
-    .get('[data-qa-node="cvvdebitSource"]').type('111')
-    .get('[data-qa-node="firstNamedebitSource"]').type('SHAYNE')
-    .get('[data-qa-node="lastNamedebitSource"]').type('MCCONNELL')
-    .get('[data-qa-node="numberreceiver"]').type('5309233034765085')
-    .get('[data-qa-node="amount"]').type('300')
-    .get('[data-qa-node="toggle-comment"]').click()
-    .get('[data-qa-node="comment"]').type('cypress_test')
-    .get('[type="submit"]').click()
-    .wait(2000)
-    .get('[data-qa-node="payer-card"]')
-      .should('have.text', '4552 3314 4813 8217')
-    .get('[data-qa-node="receiver-card"]')
-      .should('have.text', '5309 2330 3476 5085')
-    .get('[data-qa-node="payer-amount"]')
-      .should('have.text', '300 UAH')
-    .get('[data-qa-node="payer-currency"]')
-      .should('have.text', '84.67 UAH')
-    .get('[data-qa-node="total"]').find('div')
-      .should('contain.text', '384.67')
-      .and('contain.text', 'UAH')
-    .get('[data-qa-node="comment"]')
-      .should('have.text', 'cypress_test')
+it('Перевод с карты на карту', () => {
+  basePage.open('https://next.privat24.ua/money-transfer/card?lang=en')
+    basePage.typeDebitCardData('4552331448138217', '0524', '111', 'SHAYNE', 'MCCONNELL');
+    transfers.typeDebitCardNumber('5309233034765085');
+    basePage.typeAmount('300');
+    transfers.typeComment('cypress_test');
+    basePage.submitForm();
+    cy.wait(2000);
+    transfers.checkDebitAndRecieverCards('4552 3314 4813 8217', '5309 2330 3476 5085');
+    transfers.checkPayerAmount('300 UAH')
+    transfers.checkPayerCurrency('84.67 UAH')
+    transfers.checkTotal('384.67')
+    transfers.checkCommentText('cypress_test')
   });
+
+  // Get запрос 
+  it('Example GET request', () => {
+    cy.request('https://next.privat24.ua')
+      .then((response) => {
+        console.log(response)
+      })
+  })
+
+  // Post запрос 
+  it.only('Example POST request', () => {
+
+    const requestBody = {
+      "action":"info","phone":"+380987654323","amount":300,"currency":"UAH","cardCvv":"111","card":"4552331448138217","cardExp":"0526","xref":"1ca1a79d41c847dad7d72b8f96d240a0","_":1637313457598
+      };
+
+    const headersData = {
+      cookie: 'pubkey=c2648f454b294190a16f85e21b658bef; fp=17; lfp=11/16/2021, 1:54:16 PM; pa=1637147579259.00850.1910255502578353next.privat24.ua0.9854486950568657+4'
+    };
+
+    cy.request({
+      method: 'POST',
+      url: 'https://next.privat24.ua/api/p24/pub/mobipay',
+      body: requestBody,
+      headers: headersData
+    })
+    .then((response) => {
+      console.log(response.body)
+    })
+  })

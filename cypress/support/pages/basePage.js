@@ -1,29 +1,33 @@
+const exp = require("constants")
+
+// ----------------------- Локаторы -------------------------------
+
+export const baseLoc = {
+  // Левая панель с навигацией 
+  navMenu: '[data-id="navigation-menu"]',
+  // Кнопка логаута
+  logoutButton: '[data-id="user-menu-logout-button"]',
+  // Ссылка на модуль доменов в левом меню
+  domainsLink: 'Домены'
+
+}
+
+// --------------------------- Методы ------------------------------
+
 export class BasePage {
 
-  // Открытие страницы
-   open(url) {
-    cy.visit(url)
-   }
+  // Переход на переданный модуль
+   openModule(locator) {
+    cy.contains(locator, { timeout: 30000 }).click()
+   };
 
-  // Заполнение данных банковской карты
-  typeDebitCardData(cardNumber, expDate, cvv, firstName, lastName) {
-    cy.get('[data-qa-node="numberdebitSource"]').type(cardNumber)
-      .get('[data-qa-node=expiredebitSource]').type(expDate)
-      .get('[data-qa-node="cvvdebitSource"]').type(cvv)
-      .wait(2000)
-      .get('[data-qa-node="firstNamedebitSource"]').type(firstName)
-      .get('[data-qa-node="lastNamedebitSource"]').type(lastName)
+  // Получение тела iframe 
+  getIframeDocument(locator) {
+    return cy.get(locator).its('0.contentDocument').should('exist')
   }
-
-   // Заполнение поля сумма платежа
-   typeAmount(amount) {
-    cy.get('[data-qa-node="amount"]').type(amount)  
+  getIframeBody(locator) {
+    return this.getIframeDocument(locator).its('body').should('not.be.undefined').then(cy.wrap)
   }
-
-    // Отправка формы
-    submitForm() {
-      cy.get('[type="submit"]').click()
-    }
 }
 
 export const basePage = new BasePage()
